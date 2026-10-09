@@ -1,0 +1,13 @@
+property_id,user_id,property_type,sub_type,location,area_sqft,current_estimated_value_inr,purchase_price_inr,annual_rent_inr,occupancy_status,tenant_status,ownership_percent,status
+P001,U001,Retail,High-street retail,"Bandra West, Mumbai",5200,120000000,,7200000,Tenanted,Yes,100,Active
+P002,U001,Commercial Office,Office,"Andheri East, Mumbai",7800,85000000,,0,Vacant,No,100,Active
+P003,U001,Retail,Shopping centre unit,"Lower Parel, Mumbai",3100,92000000,,6000000,Tenanted,Yes,100,Active
+P004,U002,Residential,Apartment,"Bandra West, Mumbai",2100,64000000,,0,Self-occupied,No,100,Active
+P005,U002,Residential,Apartment,"Worli, Mumbai",1800,51000000,,2400000,Tenanted,Yes,100,Active
+P006,U002,Residential,Villa,"Alibaug, Maharashtra",4200,78000000,,0,Vacant,No,100,Active
+P007,U003,Commercial Office,Office,"Golf Course Road, Gurugram",18500,240000000,,16800000,Tenanted,Yes,100,Active
+P008,U003,Commercial Office,Office,"Noida Sector 62, Noida",12000,115000000,,0,Vacant,No,100,Active
+P009,U003,Retail,High-street retail,"Sector 29, Gurugram",4600,132000000,,9600000,Tenanted,Yes,100,Active
+P010,U004,Retail,Mall retail,"Whitefield, Bengaluru",2800,48000000,,3600000,Tenanted,Yes,100,Active
+P011,U004,Office,Office floor,"Koramangala, Bengaluru",3900,56000000,,4200000,Tenanted,Yes,100,Active
+P012,U004,Residential,Apartment,"Indiranagar, Bengaluru",2200,34000000,,0,Self-occupied,No,100,Active

@@ -1,0 +1,7 @@
+request_id,user_id,user_request,expected_capability,expected_interpretation
+R001,U001,Show me my retail properties,search_properties,owner=U001; property_type=Retail
+R002,U001,Which of my properties are above ₹10 crore?,search_properties,owner=U001; current_estimated_value_inr>100000000
+R003,U002,Show me my properties in Mumbai,search_properties,owner=U002; location contains Mumbai
+R004,U003,Which property gives me the highest annual rent?,portfolio_analysis,max annual_rent_inr
+R005,U004,Add a 3000 sq ft retail property in Indiranagar worth ₹4.2 crore,create_property,area=3000; property_type=Retail; location=Indiranagar; value=42000000
+R006,U001,Change my Bandra retail property value to ₹12.5 crore,update_property,identify P001 from context; current_estimated_value_inr=125000000
