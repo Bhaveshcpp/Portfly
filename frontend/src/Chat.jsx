@@ -2,26 +2,35 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "./api.js";
 
 const storeKey = (id) => `portfly:conversation:${id}`;
-const remember = (id, value) => {
+const KEY_HEADER = "X-Conversation-Key";
+
+// A saved thread is {id, key}: the server only lets you read or continue a conversation if you hold its key.
+const remember = (id, thread) => {
   try {
-    if (value == null) localStorage.removeItem(storeKey(id));
-    else localStorage.setItem(storeKey(id), String(value));
+    if (!thread) localStorage.removeItem(storeKey(id));
+    else localStorage.setItem(storeKey(id), JSON.stringify(thread));
   } catch {
     /* storage can be unavailable (private mode); the chat still works, it just won't survive a refresh */
   }
 };
 const recall = (id) => {
   try {
-    return localStorage.getItem(storeKey(id));
+    const raw = localStorage.getItem(storeKey(id));
+    if (!raw) return null;
+    const thread = JSON.parse(raw);
+    if (thread && Number.isInteger(thread.id) && typeof thread.key === "string" && thread.key) return thread;
+    localStorage.removeItem(storeKey(id)); // older format (id only): unusable without a key, so drop it
   } catch {
-    return null;
+    /* unreadable value: treat as no saved thread */
   }
+  return null;
 };
 
 export default function Chat() {
   const [users, setUsers] = useState([]);
   const [userId, setUserId] = useState("");
   const [conversationId, setConversationId] = useState(null);
+  const [conversationKey, setConversationKey] = useState(null);
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -44,14 +53,18 @@ export default function Chat() {
   async function pickUser(id) {
     setUserId(id);
     setConversationId(null);
+    setConversationKey(null);
     setMessages([]);
     setLatency(null);
     const saved = recall(id);
     if (!saved) return;
     try {
-      const convo = await api(`/api/conversations/${saved}`);
+      const convo = await api(`/api/users/${id}/conversations/${saved.id}/messages`, {
+        headers: { [KEY_HEADER]: saved.key },
+      });
       if (convo.user_id !== id) throw new Error("thread belongs to someone else");
-      setConversationId(convo.id);
+      setConversationId(convo.conversation_id);
+      setConversationKey(saved.key);
       setMessages(convo.messages.map(({ role, content }) => ({ role, content })));
     } catch {
       remember(id, null);
@@ -61,6 +74,7 @@ export default function Chat() {
   function newChat() {
     remember(userId, null);
     setConversationId(null);
+    setConversationKey(null);
     setMessages([]);
     setLatency(null);
   }
@@ -75,6 +89,7 @@ export default function Chat() {
     try {
       const result = await api("/api/chat", {
         method: "POST",
+        headers: conversationId && conversationKey ? { [KEY_HEADER]: conversationKey } : {},
         body: JSON.stringify({
           user_id: userId,
           conversation_id: conversationId,
@@ -82,10 +97,25 @@ export default function Chat() {
         }),
       });
       setConversationId(result.conversation_id);
-      remember(userId, result.conversation_id);
+      if (result.conversation_key) {
+        // sent once, when the conversation is created; keep it next to the id so a refresh can resume
+        setConversationKey(result.conversation_key);
+        remember(userId, { id: result.conversation_id, key: result.conversation_key });
+      }
       setMessages((m) => [...m, { role: "assistant", content: result.reply }]);
       setLatency(result.total_ms);
     } catch (err) {
+      if (err.status === 401 || err.status === 403) {
+        // the saved key no longer opens this conversation: start fresh instead of failing forever
+        remember(userId, null);
+        setConversationId(null);
+        setConversationKey(null);
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", content: "That conversation is no longer available, so your message was not sent. Send it again to start a new chat." },
+        ]);
+        return;
+      }
       setMessages((m) => [
         ...m,
         { role: "assistant", content: `Could not reach Portfly: ${err.message}` },

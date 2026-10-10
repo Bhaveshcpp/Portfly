@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     max_agent_steps: int = 12  # LangGraph recursion limit: bounds tool loops
     llm_max_tokens: int = 700  # bounds cost and latency per model call
     frontend_origin: str = "http://localhost:5173"
+    # Shared secret for the business desk and conversation endpoints. Empty = those endpoints refuse every request.
+    desk_token: str = ""
     data_dir: Path = ROOT / "data"
 
 

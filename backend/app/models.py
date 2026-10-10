@@ -55,6 +55,9 @@ class Conversation(Base):
     # inputs of the latest what-if so "how would that change my portfolio?" has something to refer to
     active_scenario: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     last_mentioned_property_ids: Mapped[list] = mapped_column(JSON, default=list)
+    # SHA-256 (hex) of the conversation's secret key; the key itself is never stored.
+    # NULL = a conversation created before keys existed: no public access, desk-only.
+    access_key_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
