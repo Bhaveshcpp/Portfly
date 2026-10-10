@@ -3,13 +3,13 @@
 from typing import Any
 
 import pytest
+from app.agent.graph import _system_prompt, run_agent
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 from pydantic import Field
 
 from app import portfolio
-from app.agent.graph import run_agent
 from app.models import AgentRun, Conversation, Message, ToolCall, User
 
 
@@ -172,3 +172,16 @@ def test_runaway_tool_loop_is_bounded(db):
     _, res = turn(db, "U001", "loop forever", llm)
     assert "step limit" in res["error"] and res["needs_attention"]
     assert llm.calls <= 14
+
+
+def test_system_prompt_loads_soul_file(db, tmp_path, monkeypatch):
+    from app.agent import graph
+
+    soul_file = tmp_path / "SOUL.md"
+    soul_file.write_text("Unique Portfly instruction for verification.", encoding="utf-8")
+    monkeypatch.setattr(graph, "SOUL_PATH", soul_file)
+
+    user = db.get(User, "U001")
+    prompt = _system_prompt(user, [], None)
+
+    assert "Unique Portfly instruction for verification." in prompt
