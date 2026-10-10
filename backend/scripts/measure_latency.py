@@ -80,15 +80,23 @@ def main() -> int:
                 reply = client.chat(user, message, cid)
                 cid = reply["conversation_id"]
                 run = client.last_run(cid)
+                if run["status"] != "ok":
+                    print(f"ERROR | rep={rep + 1} | {category} | {run.get('error_message')}")
                 rows.append({
                     "category": category, "message": message, "rep": rep,
                     "total": run["total_ms"], "model": run["model_ms"], "tools": run["tool_ms"], "other": run["overhead_ms"],
                     "llm_calls": run["llm_calls"], "prompt_tokens": run["prompt_tokens"], "completion_tokens": run["completion_tokens"],
                     "status": run["status"], "fallback": run["used_fallback"],
+                    "error": run.get("error_message"),
                 })
             print(f"rep {rep + 1}/{args.reps} done")
         ok = [r for r in rows if r["status"] == "ok"]
         errors = len(rows) - len(ok)
+
+        if not ok:
+               print(f"\nNo successful requests. All {errors} requests failed.")
+               print("Check the saved error messages above before retrying.")
+               return 1
 
         overall = summarize(ok)
         by_cat = {c: summarize([r for r in ok if r["category"] == c]) for c in dict.fromkeys(w[0] for w in WORKLOAD)}
