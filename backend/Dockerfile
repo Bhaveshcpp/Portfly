@@ -17,6 +17,7 @@ RUN grep -v '^pytest' /workspace/backend/requirements.txt > /tmp/requirements.tx
 RUN python -m pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
 
 COPY backend/ /workspace/backend/
+COPY SOUL.md /workspace/backend/SOUL.md
 COPY data/ /workspace/data/
 COPY --from=frontend-build /workspace/frontend/dist/ /workspace/backend/app/static/
 
